@@ -8,11 +8,14 @@ class HealthRecord(models.Model):
     preassure_systolic = models.IntegerField(null=True, blank=True)
     preassure_diastolic = models.IntegerField(null=True, blank=True)
     record_diagnosis = models.TextField(blank=True, null=True)
+    
+    # El campo se define aquí como 'patient'
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     record_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"Health Record - {self.id_patient.patient_first_name} {self.id_patient.patient_last_name} ({self.record_date})"
+        # Corrección: Usar self.patient para acceder al objeto relacionado
+        return f"Health Record - {self.patient.patient_first_name} {self.patient.patient_last_name} ({self.record_date})"
 
     class Meta:
         db_table = 'health_record'
