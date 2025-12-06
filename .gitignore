@@ -209,3 +209,4 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+backend/patient/migrations/0002_alter_patient_patient_gender.py
