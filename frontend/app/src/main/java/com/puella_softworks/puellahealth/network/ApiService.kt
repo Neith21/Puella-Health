@@ -7,7 +7,7 @@ import retrofit2.Response
 import retrofit2.http.*
 
 interface ApiService {
-    @POST("api/login/")
+    @POST("api/v1/api-token-auth")
     suspend fun login(@Body credentials: Map<String, String>): Response<LoginResponse>
 
     //RUTAS PARA LOS DATOS GENERALES DEL PACIENTE
