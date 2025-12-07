@@ -9,5 +9,6 @@ data class HealthRecord(
     @SerializedName("preassure_diastolic") val diastolic: Int,
     @SerializedName("record_diagnosis") val diagnosis: String? = null, // Viene del backend
     @SerializedName("record_active") val isActive: Int = 1,
-    @SerializedName("patient_id") val patientId: Int
+    @SerializedName("patient_id") val patientId: Int,
+    @SerializedName("patient_full_name") val patientName: String? = null
 )

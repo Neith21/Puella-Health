@@ -11,10 +11,10 @@ interface ApiService {
     suspend fun login(@Body credentials: Map<String, String>): Response<LoginResponse>
 
     //RUTAS PARA LOS DATOS GENERALES DEL PACIENTE
-    @GET("api/patients/")
+    @GET("api/v1/patients/")
     suspend fun getPatients(): Response<List<Patient>>
 
-    @POST("api/patients/")
+    @POST("api/v1/patients/")
     suspend fun createPatient(@Body patient: Patient): Response<Patient>
 
     @PUT("api/patients/{id}/")
