@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from django.http import JsonResponse, Http404, HttpResponseRedirect
 from http import HTTPStatus
-from django.contrib.auth.models import User #Django´s Model
+from django.contrib.auth.models import User
 import uuid
 import os
 from django.contrib.auth import authenticate
@@ -11,34 +11,25 @@ from urllib.parse import urlencode
 from django.utils import timezone
 from django.db.models import Q
 
-#JWT
 from jose import jwt
 from django.conf import settings
 from datetime import datetime, timedelta
 import time
-
 
 from .models import *
 from utilities.utilities import sendMail
 from django.db import transaction
 from django.core.validators import validate_email
 
-
-# Create your views here.
-
-
 def get_base_url():
-    base_url = os.getenv("BASE_URL", "http://127.0.0.1:8000")
+    base_url = os.getenv("BASE_URL", "http://localhost")
     port = os.getenv("BASE_URL_BACKEND_PORT")
     if port:
         return f"{base_url}:{port}"
     return base_url
 
 def get_frontend_base_url():
-    base_url = os.getenv("BASE_URL", "http://localhost:5173/autorent-leon/")
-    port = os.getenv("BASE_URL_FRONTEND_PORT")
-    if port:
-        return f"{base_url}:{port}"
+    base_url = os.getenv("BASE_URL_FRONTEND", "https://neith21.github.io")
     return base_url
 
 
@@ -83,13 +74,13 @@ class Register(APIView):
 
     def post(self, request):
 
-        # Validate required fields
-        required_fields = ["name", "email", "password"]
+        required_fields = ["name", "username", "email", "password"]
         error_response = validate_required_fields(request.data, required_fields)
         if error_response:
             return error_response
         
-        first_name = request.data.get("name").strip()
+        first_name = request.data.get("name").strip() or ""
+        username = request.data.get("username").strip() or ""
         email = request.data.get("email").strip().lower()
         password = request.data.get("password")
 
@@ -120,10 +111,9 @@ class Register(APIView):
         url = f"{base_url}/api/v1/user-control/verification/{token}"
 
         try:
-            # Uso de atomic para crear una transacción
             with transaction.atomic():
                 user = User.objects.create_user(
-                    username=email,
+                    username=username,
                     password=password,
                     email=email,
                     first_name=first_name,
@@ -132,12 +122,7 @@ class Register(APIView):
                     is_active=0
                 )
 
-                # CAMBIO REALIZADO PARA FUNCIONAMIENTO DE LA BITACORA
-                metadata = UsersMetadata.objects.create(token=token, user_id=user.id)
-                history_record = metadata.history.last()
-                history_record.history_user = user
-                history_record.history_change_reason = "Creación de usuario, esperando verificación"
-                history_record.save()
+                UsersMetadata.objects.create(token=token, user_id=user.id)
 
                 html = f"""
                     <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 30px;">
@@ -166,14 +151,12 @@ class Register(APIView):
                     </div>
                 """
 
-                # Si falla el envío de correo, se lanzará una excepción y se revertirá la transacción
                 sendMail(
                     html_content=html,
                     subject="Verificación de Cuenta",
                     recipient_email=email
                 )
-
-            # Si llegamos aquí, es porque todo se completó correctamente
+                
             return JsonResponse({
                 "status": "ok",
                 "message": "Usuario creado exitosamente.",
@@ -191,9 +174,10 @@ class Verification(APIView):
 
 
     def get(self, request, token):
+
         frontend_base_url = get_frontend_base_url()
-        login_path = "/autorent-leon/#/login"
-        register_path = "/autorent-leon/#/register"
+        login_path = "/success.html"
+        register_path = "/register.html"
 
         messages_es = {
             "TOKEN_REQUIRED": "Token no proporcionado o inválido.",
@@ -227,7 +211,6 @@ class Verification(APIView):
                 params = urlencode({'status': 'info', 'message_key': 'ALREADY_ACTIVE'})
                 return HttpResponseRedirect(f"{frontend_base_url}{login_path}?{params}")
 
-            # Verificar si ha expirado (más de 24 horas)
             time_since_creation = timezone.now() - user_account.date_joined
             if time_since_creation > timedelta(days=1):
                 with transaction.atomic():
@@ -236,7 +219,6 @@ class Verification(APIView):
                 params = urlencode({'status': 'error', 'message_key': 'VERIFICATION_EXPIRED'})
                 return HttpResponseRedirect(f"{frontend_base_url}{register_path}?{params}")
             
-            # Activar el usuario
             else:
                 with transaction.atomic():
                     user_account.is_active = True
@@ -265,13 +247,12 @@ class Login(APIView):
 
     def post(self, request):
 
-
-        required_fields = ["email", "password"]
+        required_fields = ["email_or_username", "password"]
         error_response = validate_required_fields(request.data, required_fields)
         if error_response:
             return error_response
 
-        email_or_username = request.data.get("email").strip()
+        email_or_username = request.data.get("email_or_username").strip()
         password = request.data.get("password")
 
         user_obj = None
@@ -289,44 +270,84 @@ class Login(APIView):
             user.last_login = timezone.now()
             user.save(update_fields=['last_login'])
 
-            now = datetime.now()
-            expiration = now + timedelta(days=1)
-            expiration_timestamp = int(datetime.timestamp(expiration))
-            
-            base_url_with_port = get_base_url()
-
-            payload = {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "is_superuser": user.is_superuser,
-                "iss": base_url_with_port,
-                "iat": int(time.time()),
-                "exp": expiration_timestamp
-            }
-
-            try:
-                token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS512')
-                return JsonResponse({
-                    "status": "ok",
-                    "message": "Inicio de sesión exitoso.",
-                    "token": token,
-                    "user": {
-                        "id": user.id,
-                        "username": user.username,
-                        "email": user.email,
-                        "first_name": user.first_name
-                    }
-                })
-            except Exception as e:
-                return JsonResponse({
-                    "status": "error",
-                    "message": f"No se pudo generar el token de autenticación. {e}"
-                }, status=HTTPStatus.INTERNAL_SERVER_ERROR)
+            return JsonResponse({
+                "status": "ok",
+                "message": "Inicio de sesión exitoso.",
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "first_name": user.first_name
+                }
+            })
         else:
             return JsonResponse({
                 "status": "error",
                 "message": "Credenciales inválidas o usuario no encontrado."
             }, status=HTTPStatus.UNAUTHORIZED)
+        
+
+class EditPassword(APIView):
+
+
+    def post(self, request):
+        data = request.data
+
+        required_fields = ["user_id", "current_password", "new_password", "confirm_password"]
+        error_response = validate_required_fields(data, required_fields)
+        if error_response:
+            return error_response
+
+        user_id = data.get("user_id")
+        current_password = data.get("current_password")
+        new_password = data.get("new_password")
+        confirm_password = data.get("confirm_password")
+
+        try:
+            user_to_update = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return JsonResponse({
+                "status": "error",
+                "message": "Usuario no encontrado."
+            }, status=HTTPStatus.NOT_FOUND)
+
+        if not user_to_update.check_password(current_password):
+            return JsonResponse({
+                "status": "error",
+                "message": "La contraseña actual no es correcta."
+            }, status=HTTPStatus.BAD_REQUEST)
+
+        if new_password != confirm_password:
+            return JsonResponse({
+                "status": "error",
+                "message": "La nueva contraseña y la confirmación no coinciden."
+            }, status=HTTPStatus.BAD_REQUEST)
+
+        if user_to_update.check_password(new_password):
+            return JsonResponse({
+                "status": "error",
+                "message": "La nueva contraseña no puede ser igual a la contraseña actual."
+            }, status=HTTPStatus.BAD_REQUEST)
+
+        password_complexity_error = validate_password_complexity(new_password)
+        if password_complexity_error:
+            return JsonResponse({
+                "status": "error",
+                "message": password_complexity_error
+            }, status=HTTPStatus.BAD_REQUEST)
+
+        try:
+            with transaction.atomic():
+                user_to_update.set_password(new_password)
+                user_to_update.save()
+
+            return JsonResponse({
+                "status": "ok",
+                "message": "Contraseña actualizada exitosamente."
+            }, status=HTTPStatus.OK)
+
+        except Exception as e:
+            return JsonResponse({
+                "status": "error",
+                "message": "Ocurrió un error inesperado al actualizar la contraseña."
+            }, status=HTTPStatus.INTERNAL_SERVER_ERROR)

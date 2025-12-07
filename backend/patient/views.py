@@ -2,10 +2,12 @@ from rest_framework import viewsets
 from datetime import date
 from .models import Patient
 from .serializers import PatientSerializer
+from rest_framework.permissions import IsAuthenticated
 
 class PatientViewSet(viewsets.ModelViewSet):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
+    permission_classes = [IsAuthenticated] # Obligatorio estar logueado
 
     # Sobreescribimos este método para meter nuestra lógica custom
     def perform_create(self, serializer):

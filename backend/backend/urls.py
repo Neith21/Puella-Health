@@ -29,7 +29,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('user_control.urls')),
     path('api/v1/', include('patient.urls')),
-    path('api/v1/api-token-auth', views.obtain_auth_token),
+    path('api/v1/', include('patient_medical_data.urls')),
+    path('api/v1/', include('health_record.urls')),
+    path('api/v1/api-token-auth/', views.obtain_auth_token),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
