@@ -3,10 +3,7 @@ package com.puella_softworks.puellahealth
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,7 +11,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         findViewById<View>(R.id.btnGoMeasure).setOnClickListener {
-            startActivity(Intent(this, MeasureActivity::class.java))
+            val intent = Intent(this, PatientListActivity::class.java)
+            intent.putExtra("IS_SELECTION_MODE", true)
+            startActivity(intent)
         }
         findViewById<View>(R.id.btnGoPatients).setOnClickListener {
             startActivity(Intent(this, PatientListActivity::class.java))

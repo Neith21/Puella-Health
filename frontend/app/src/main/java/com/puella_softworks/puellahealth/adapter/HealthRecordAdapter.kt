@@ -1,5 +1,6 @@
 package com.puella_softworks.puellahealth.adapter
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,14 +15,12 @@ class HealthRecordAdapter(
 ) : RecyclerView.Adapter<HealthRecordAdapter.RecordViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecordViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_record, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_record, parent, false)
         return RecordViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: RecordViewHolder, position: Int) {
-        val record = records[position]
-        holder.bind(record, onItemClick)
+        holder.bind(records[position], onItemClick)
     }
 
     override fun getItemCount(): Int = records.size
@@ -33,12 +32,21 @@ class HealthRecordAdapter(
 
     class RecordViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvDate: TextView = itemView.findViewById(R.id.tvRecordDate)
-        private val tvPatientName: TextView = itemView.findViewById(R.id.tvPatientName)
+        private val tvName: TextView = itemView.findViewById(R.id.tvPatientName)
+        private val tvPressure: TextView = itemView.findViewById(R.id.tvPressure)
 
         fun bind(record: HealthRecord, clickListener: (HealthRecord) -> Unit) {
-            tvDate.text = "Fecha: ${record.date}"
+            tvDate.text = record.date
 
-            tvPatientName.text = record.patientName ?: "Paciente #${record.patientId}"
+            tvName.text = record.patientName ?: "Paciente #${record.patientId}"
+
+            tvPressure.text = "Presión: ${record.systolic}/${record.diastolic} mmHg"
+
+            if (record.systolic > 140 || record.diastolic > 90) {
+                tvPressure.setTextColor(Color.RED)
+            } else {
+                tvPressure.setTextColor(Color.BLACK)
+            }
 
             itemView.setOnClickListener { clickListener(record) }
         }

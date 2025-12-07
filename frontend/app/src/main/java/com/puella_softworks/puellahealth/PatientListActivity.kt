@@ -2,6 +2,7 @@ package com.puella_softworks.puellahealth
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -23,17 +24,32 @@ class PatientListActivity : AppCompatActivity() {
     private lateinit var adapter: PatientAdapter
     private var patientList = mutableListOf<Patient>()
 
+    private var isSelectionMode = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_patient_list)
 
+        isSelectionMode = intent.getBooleanExtra("IS_SELECTION_MODE", false)
+        title = if (isSelectionMode) "Selecciona un Paciente" else "Lista de Pacientes"
+
         val rvPatients = findViewById<RecyclerView>(R.id.rvPatients)
         val fabAdd = findViewById<FloatingActionButton>(R.id.fabAddPatient)
 
+        if (isSelectionMode) {
+            fabAdd.visibility = View.GONE
+        }
+
         adapter = PatientAdapter(patientList) { patient ->
-            val intent = Intent(this, PatientDetailActivity::class.java)
-            intent.putExtra("PATIENT_DATA", patient)
-            startActivity(intent)
+            if (isSelectionMode) {
+                val intent = Intent(this, MeasureActivity::class.java)
+                intent.putExtra("PATIENT_DATA", patient)
+                startActivity(intent)
+            } else {
+                val intent = Intent(this, PatientDetailActivity::class.java)
+                intent.putExtra("PATIENT_DATA", patient)
+                startActivity(intent)
+            }
         }
 
         rvPatients.layoutManager = LinearLayoutManager(this)

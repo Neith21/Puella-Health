@@ -1,7 +1,9 @@
 package com.puella_softworks.puellahealth
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -9,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.puella_softworks.puellahealth.model.LoginUserDataRequest
 import com.puella_softworks.puellahealth.network.RetrofitClient
 import com.puella_softworks.puellahealth.utils.SessionManager
 import kotlinx.coroutines.CoroutineScope
@@ -26,36 +29,70 @@ class LoginActivity : AppCompatActivity() {
         val etPass = findViewById<EditText>(R.id.etPassword)
 
         btnLogin.setOnClickListener {
-            val credentials = mapOf(
-                "username" to etUser.text.toString(),
-                "password" to etPass.text.toString()
-            )
+            val user = etUser.text.toString()
+            val pass = etPass.text.toString()
+
+            if (user.isEmpty() || pass.isEmpty()) {
+                Toast.makeText(this, "Llena los campos, por favor", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val sessionManager = SessionManager(this)
+            sessionManager.clearData()
+
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    val response = RetrofitClient.getApiService(this@LoginActivity).login(credentials)
+                    val api = RetrofitClient.getApiService(this@LoginActivity)
+                    val session = SessionManager(this@LoginActivity)
 
-                    if (response.isSuccessful && response.body() != null) {
-                        val token = response.body()!!.token
+                    val tokenCredentials = mapOf("username" to user, "password" to pass)
+                    val tokenResponse = api.getToken(tokenCredentials)
 
-                        val session = SessionManager(this@LoginActivity)
+                    if (tokenResponse.isSuccessful && tokenResponse.body() != null) {
+                        val token = tokenResponse.body()!!.token
                         session.saveAuthToken(token)
 
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(this@LoginActivity, "¡Bienvenido!", Toast.LENGTH_SHORT).show()
-                            startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-                            finish()
+                        val userInfoRequest = LoginUserDataRequest(identifier = user, password = pass)
+                        val userResponse = api.getUserInfo(userInfoRequest)
+
+                        if (userResponse.isSuccessful && userResponse.body() != null) {
+                            val userData = userResponse.body()!!.user
+                            session.saveUserDetails(userData)
+
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@LoginActivity, "Bienvenido, ${userData.firstName}", Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                                finish()
+                            }
+                        } else {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@LoginActivity, "Token OK, pero error al cargar perfil", Toast.LENGTH_LONG).show()
+                                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                                finish()
+                            }
                         }
+
                     } else {
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(this@LoginActivity, "Error: Credenciales inválidas", Toast.LENGTH_LONG).show()
+                            Toast.makeText(this@LoginActivity, "Credenciales incorrectas", Toast.LENGTH_SHORT).show()
+
                         }
                     }
+
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@LoginActivity, "Error de conexión: ${e.message}", Toast.LENGTH_LONG).show()
-                        e.printStackTrace()
                     }
                 }
+            }
+        }
+
+        findViewById<Button>(R.id.btnSignUp).setOnClickListener {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://neith21.github.io/register.html"))
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("Santo Padre", "Error al abrir URL: ${e.message}")
             }
         }
     }

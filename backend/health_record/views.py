@@ -36,5 +36,15 @@ class HealthRecordViewSet(viewsets.ModelViewSet):
             record_diagnosis=diagnosis_result # <--- Aquí inyectamos lo que dijo Gemini
         )
 
+    def get_queryset(self):
+        queryset = HealthRecord.objects.all()
+        
+        patient_id = self.request.query_params.get('patient_id')
+ 
+        if patient_id:
+            queryset = queryset.filter(patient_id=patient_id)
+            
+        return queryset
+
     def perform_update(self, serializer):
         serializer.save(modified_by=self.request.user)
