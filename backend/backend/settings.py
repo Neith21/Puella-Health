@@ -66,10 +66,16 @@ MIDDLEWARE = [
 CORS_ORIGIN_ALLOW_ALL=True
 CORS_ALLOW_CREDENTIALS=True
 CORS_ORIGIN_WHITELIST=[
-    f"{os.getenv('BASE_URL')}:{os.getenv('BASE_URL_FRONTEND_PORT')}",
+    f"{os.getenv('BASE_URL')}",
+    "https://neith21.github.io",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 CORS_ORIGIN_REGEX_WHITELIST=[
-    f"{os.getenv('BASE_URL')}:{os.getenv('BASE_URL_FRONTEND_PORT')}",
+    f"{os.getenv('BASE_URL')}",
+    "https://neith21.github.io",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 ROOT_URLCONF = 'backend.urls'
