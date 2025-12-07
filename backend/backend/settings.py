@@ -38,6 +38,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # Esto permite que Thunder Client funcione con usuario/contraseña
         'rest_framework.authentication.BasicAuthentication', 
+        'rest_framework.authentication.TokenAuthentication',
         
         # Esto es para cuando te logueas desde el navegador (admin)
         'rest_framework.authentication.SessionAuthentication',
@@ -57,6 +58,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework.authtoken',
     'drf_yasg',
     'rest_framework',
     'corsheaders',
