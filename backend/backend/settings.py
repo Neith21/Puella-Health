@@ -32,6 +32,21 @@ DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = [os.getenv('BASE_URL'), '*']
 
+# settings.py
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # Esto permite que Thunder Client funcione con usuario/contraseña
+        'rest_framework.authentication.BasicAuthentication', 
+        
+        # Esto es para cuando te logueas desde el navegador (admin)
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        # Opcional: Esto bloquea todo por defecto si no estás logueado
+        'rest_framework.permissions.IsAuthenticated', 
+    ]
+}
 
 # Application definition
 
