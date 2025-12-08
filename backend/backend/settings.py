@@ -32,6 +32,22 @@ DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = [os.getenv('BASE_URL'), '*']
 
+# settings.py
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # Esto permite que Thunder Client funcione con usuario/contraseña
+        'rest_framework.authentication.BasicAuthentication', 
+        'rest_framework.authentication.TokenAuthentication',
+        
+        # Esto es para cuando te logueas desde el navegador (admin)
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        # Opcional: Esto bloquea todo por defecto si no estás logueado
+        'rest_framework.permissions.IsAuthenticated', 
+    ]
+}
 
 # Application definition
 
@@ -42,6 +58,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework.authtoken',
     'drf_yasg',
     'rest_framework',
     'corsheaders',
@@ -66,10 +83,16 @@ MIDDLEWARE = [
 CORS_ORIGIN_ALLOW_ALL=True
 CORS_ALLOW_CREDENTIALS=True
 CORS_ORIGIN_WHITELIST=[
-    f"{os.getenv('BASE_URL')}:{os.getenv('BASE_URL_FRONTEND_PORT')}",
+    f"{os.getenv('BASE_URL')}",
+    "https://neith21.github.io",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 CORS_ORIGIN_REGEX_WHITELIST=[
-    f"{os.getenv('BASE_URL')}:{os.getenv('BASE_URL_FRONTEND_PORT')}",
+    f"{os.getenv('BASE_URL')}",
+    "https://neith21.github.io",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 ROOT_URLCONF = 'backend.urls'

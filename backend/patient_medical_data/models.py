@@ -1,5 +1,6 @@
 from django.db import models
 from patient.models import Patient
+from django.conf import settings
 
 class PatientMedicalData(models.Model):
     BLOOD_TYPE_CHOICES = [
@@ -21,7 +22,13 @@ class PatientMedicalData(models.Model):
     
     # El campo se llama 'patient'
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-    record_active = models.BooleanField(default=True)
+
+    # --- Campos de Auditoría ---
+    active = models.BooleanField(default=True, verbose_name="activo")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="creado por")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="fecha de creación")
+    modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+', verbose_name="modificado por")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="última modificación")
 
     def __str__(self):
         # Accedemos a self.patient
