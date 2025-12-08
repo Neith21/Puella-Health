@@ -2,8 +2,10 @@ package com.puella_softworks.puellahealth
 
 import android.os.Bundle
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.puella_softworks.puellahealth.model.MedicalData
@@ -24,6 +26,7 @@ class PatientDetailActivity : AppCompatActivity() {
     private lateinit var etAllergies: EditText
     private lateinit var etConditions: EditText
     private lateinit var btnSave: Button
+    private lateinit var spinnerBloodType: Spinner
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,10 +55,24 @@ class PatientDetailActivity : AppCompatActivity() {
     private fun initViews() {
         etHeight = findViewById(R.id.etHeight)
         etWeight = findViewById(R.id.etWeight)
-        etBlood = findViewById(R.id.etBloodType)
+        spinnerBloodType = findViewById(R.id.spinnerBloodType)
         etAllergies = findViewById(R.id.etAllergies)
         etConditions = findViewById(R.id.etConditions)
         btnSave = findViewById(R.id.btnSaveMedicalData)
+
+        setupBloodTypeSpinner()
+    }
+
+    private fun setupBloodTypeSpinner() {
+        val bloodTypes = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
+
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            bloodTypes
+        )
+
+        spinnerBloodType.adapter = adapter
     }
 
     private fun fetchMedicalDetails(patientId: Int) {
@@ -94,9 +111,12 @@ class PatientDetailActivity : AppCompatActivity() {
     private fun populateFields(data: MedicalData) {
         etHeight.setText(data.height.toString())
         etWeight.setText(data.weight.toString())
-        etBlood.setText(data.bloodType)
         etAllergies.setText(data.allergies)
         etConditions.setText(data.conditions)
+
+        val types = listOf("A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-")
+        val index = types.indexOf(data.bloodType)
+        if (index != -1) spinnerBloodType.setSelection(index)
     }
 
     private fun saveMedicalData() {
@@ -108,7 +128,7 @@ class PatientDetailActivity : AppCompatActivity() {
         val newData = MedicalData(
             height = etHeight.text.toString().toDouble(),
             weight = etWeight.text.toString().toDouble(),
-            bloodType = etBlood.text.toString(),
+            bloodType = spinnerBloodType.selectedItem.toString(),
             allergies = etAllergies.text.toString(),
             conditions = etConditions.text.toString(),
             patientId = currentPatientId

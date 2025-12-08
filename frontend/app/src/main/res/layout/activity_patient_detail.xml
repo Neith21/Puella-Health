@@ -25,13 +25,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:text="Nombre del Paciente"
+            android:text="DATOS CLÍNICOS"
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
             android:layout_marginBottom="32dp"/>
 
-        <!-- Height and Weight in the same row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -70,17 +69,18 @@
         </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/bloodTypeLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Tipo de Sangre"
             android:layout_marginBottom="16dp"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etBloodType"
+            <Spinner
+                android:id="@+id/spinnerBloodType"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textCapCharacters"/>
+                android:spinnerMode="dropdown" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout

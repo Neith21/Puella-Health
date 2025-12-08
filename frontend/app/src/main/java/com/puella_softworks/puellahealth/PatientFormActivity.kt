@@ -1,6 +1,10 @@
 package com.puella_softworks.puellahealth
 
+import android.app.DatePickerDialog
+import android.icu.util.Calendar
 import android.os.Bundle
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -26,8 +30,37 @@ class PatientFormActivity : AppCompatActivity() {
         val etBirth = findViewById<EditText>(R.id.etFormBirth)
         val etEmail = findViewById<EditText>(R.id.etFormEmail)
         val etPhone = findViewById<EditText>(R.id.etFormPhone)
-        val etGender = findViewById<EditText>(R.id.etFormGender)
+        val etGender = findViewById<AutoCompleteTextView>(R.id.etFormGender)
         val btnSave = findViewById<Button>(R.id.btnFormSave)
+
+        val genderOptions = listOf(
+            "Masculino",
+            "Femenino",
+            "Prefiero No Decirlo"
+        )
+
+        val genderAdapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_dropdown_item_1line,
+            genderOptions
+        )
+        etGender.setAdapter(genderAdapter)
+
+        etBirth.setOnClickListener {
+            val c = Calendar.getInstance()
+            val year = c.get(Calendar.YEAR)
+            val month = c.get(Calendar.MONTH)
+            val day = c.get(Calendar.DAY_OF_MONTH)
+
+            DatePickerDialog(
+                this,
+                { _, y, m, d ->
+                    val selectedDate = String.format("%04d-%02d-%02d", y, m + 1, d)
+                    etBirth.setText(selectedDate)
+                },
+                year, month, day
+            ).show()
+        }
 
         btnSave.setOnClickListener {
             val newPatient = Patient(
@@ -38,7 +71,6 @@ class PatientFormActivity : AppCompatActivity() {
                 phone = etPhone.text.toString(),
                 gender = etGender.text.toString()
             )
-
             createPatientInBackend(newPatient)
         }
     }
